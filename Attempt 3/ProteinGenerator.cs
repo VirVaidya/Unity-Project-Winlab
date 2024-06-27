@@ -1,5 +1,6 @@
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
+using Microsoft.MixedReality.Toolkit.UI.BoundsControl;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -17,34 +18,48 @@ public class ProteinGenerator : MonoBehaviour
     HelixGenerator helixs;
     ConnectGenerator connects;
     SheetGenerator sheets;
+    PhosphateSequenceGenerator rnahelixs;
+    LinkGenerator links;
+    ElementColor ColorSheet;
+
     
-
-    ElementColor ColorSheet = new ElementColor();
-
+    MeshCombiner mc = new MeshCombiner();
     // Start is called before the first frame update
     public MonoBehaviour[] scriptsToAttach;
     void Start()
     {
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = 120;
+        ColorSheet = new ElementColor();
+        int framerate = 120;
+        Application.targetFrameRate = framerate;
         protein = new GameObject();
         protein.name = "Protein";
         GameObject hitbox = new GameObject("Protein Hitbox");
         BoxCollider boxCollider = hitbox.AddComponent<BoxCollider>();
         CSVWriter writer = new CSVWriter(pdbFile, csvFile, csvPath);
         ColorSheet.createmap();
+        
+
         atoms = new AtomGenerator(protein, writer);
         helixs = new HelixGenerator(protein);
         connects = new ConnectGenerator(protein);
         sheets = new SheetGenerator(protein);
-      
-
         writer.WriteCSV();
+        rnahelixs = new PhosphateSequenceGenerator(protein, atoms);
+        links = new LinkGenerator(protein, atoms);
         CreateStructure();
-       
+        rnahelixs.createHelix();
+
 
         protein.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
 
+
+        // Position the hitbox at the protein's position
+       
+       
+        atoms.makemeshes();
+        helixs.makemeshes();
+        sheets.makemeshes();
+        rnahelixs.makemeshes();
         Bounds bounds = CalculateAccurateBounds(protein);
 
         boxCollider.size = bounds.size;
@@ -53,13 +68,13 @@ public class ProteinGenerator : MonoBehaviour
         protein.transform.SetParent(hitbox.transform, true);
 
         // Position the hitbox at the protein's position
+
+        hitbox.transform.position = bounds.center;
         hitbox.transform.position = bounds.center;
         protein.AddComponent<VoiceCommandHandler>();
         hitbox.AddComponent<NearInteractionGrabbable>();
         hitbox.AddComponent<ObjectManipulator>();
         hitbox.transform.position = new Vector3(0, 0, 0);
-        //atoms.CombineMesh();
-
     }
 
     Bounds CalculateAccurateBounds(GameObject obj)
@@ -116,9 +131,16 @@ public class ProteinGenerator : MonoBehaviour
                 {
                     sheets.GenerateSheet(line, atoms);
                 }
+                else if (line.StartsWith("TER"))
+                {
+                    atoms.skipTER();
+                }
+                else if (line.StartsWith("LINK"))
+                {
+                    links.CreateConnect(line);
+                }
             }
         }
-
     }
 }
             

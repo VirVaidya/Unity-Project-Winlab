@@ -32,7 +32,7 @@ public class CSVWriter : MonoBehaviour
         {
             while ((line = reader.ReadLine()) != null)
             {
-                if(line.StartsWith("ATOM") || line.StartsWith("HETATM"))
+                if (line.StartsWith("ATOM") || line.StartsWith("HETATM"))
                 {
                     WriteAtomLine(line);
                 }
@@ -48,6 +48,14 @@ public class CSVWriter : MonoBehaviour
                 {
                     WriteSheetLine(line);
                 }
+                else if (line.StartsWith("TER"))
+                {
+                    writer.WriteLine("TER");
+                }
+                else if (line.StartsWith("LINK"))
+                {
+                    WriteLinkLine(line);
+                }
             }
         }
 
@@ -57,6 +65,7 @@ public class CSVWriter : MonoBehaviour
     void WriteAtomLine(string line)
     {
         string type = line.Substring(0, 6).Trim();
+        string number = line.Substring(6, 5).Trim();
         string aminoAcid = line.Substring(17, 3).Trim();
         string chainnumber = line.Substring(21, 1).Trim();
         float residuenumber = float.Parse(line.Substring(22, 5).Trim());
@@ -66,8 +75,8 @@ public class CSVWriter : MonoBehaviour
         float displacement = float.Parse(line.Substring(60, 6).Trim());
         string atom = line.Substring(76, 2).Trim();
         string element = line.Substring(12, 4).Trim();
-        writer.WriteLine($"{type}, {aminoAcid}, {chainnumber}, {residuenumber},{x},{y},{z},{displacement},{atom},{element}");
-        atomlist.Add($"{type}, {aminoAcid}, {chainnumber}, {residuenumber},{x},{y},{z},{displacement},{atom},{element}".Split(','));
+        writer.WriteLine($"{type}, {aminoAcid}, {chainnumber}, {residuenumber},{x},{y},{z},{displacement},{atom},{element},{number}");
+        atomlist.Add($"{type},{aminoAcid},{chainnumber},{residuenumber},{x},{y},{z},{displacement},{atom},{element},{number}".Split(','));
     }
 
     public List<string[]> GetAtomInfo()
@@ -129,6 +138,18 @@ public class CSVWriter : MonoBehaviour
 
         writer.WriteLine($"{type},{string.Join(",", connectedatoms)}");
 
+    }
+
+    void WriteLinkLine(string line)
+    {
+        string type = line.Substring (0, 6).Trim();
+        string name1 = line.Substring(12, 4).Trim();
+        string chainID1 = line.Substring(21, 1).Trim();
+        string sequence1 = line.Substring(22, 4).Trim();
+        string name2 = line.Substring(42, 4).Trim();
+        string chainID2 = line.Substring(51, 1).Trim();
+        string sequence2 = line.Substring(52, 4).Trim();
+        writer.WriteLine($"{type},{name1},{chainID1},{sequence1},{name2},{chainID2},{sequence2}");
     }
 
     void WriteSheetLine (string line)

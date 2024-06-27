@@ -13,6 +13,8 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
         protein = gameObject;
         defaultMaterial = protein.transform.Find("Atoms").transform.GetChild(0).GetComponent<Renderer>().material;
         transmaterial = Resources.Load("Transmaterial", typeof(Material)) as Material;
+        Color32 hardtransparent = new Color32(0x00, 0x00, 0x00, 0x00);
+        //Debug.Log(protein.transform.parent.name);
     }
 
     public void OnSpeechKeywordRecognized(SpeechEventData eventData)
@@ -51,34 +53,64 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
                 showconnects();
                 break;
             case "show carbon":
-                showcarbon();
+                showspecificatom("C");
                 break;
             case "show oxygen":
-                showoxygen();
+                showspecificatom("O");
                 break;
             case "show nitrogen":
-                shownitrogen();
+                showspecificatom("N");
                 break;
             case "show hydrogen":
-                showhydrogen();
+                showspecificatom("H");
                 break;
             case "show sulfer":
-                showsulfer();
+                showspecificatom("S");
                 break;
             case "show phosphorous":
-                showphosphorous();
+                showspecificatom("P");
                 break;
             case "show bromine":
-                showbromine();
+                showspecificatom("BR");
                 break;
             case "show colors":
                 showcolors();
                 break;
             case "show zinc":
-                showzync();
+                showspecificatom("ZN");
                 break;
             case "show chlorine":
-                showchlorine();
+                showspecificatom("CL");
+                break;
+            case "show fluorine":
+                showspecificatom("F");
+                break;
+            case "show calcium":
+                showspecificatom("CA");
+                break;
+            case "show magnesium":
+                showspecificatom("MG");
+                break;
+            case "scale up":
+                scalebigger();
+                break;
+            case "scale down":
+                scalesmaller();
+                break;
+            case "come here":
+                comehere();
+                break;
+            case "show phosphate sequence":
+                showrna();
+                break;
+            case "hide phosphate sequence":
+                hiderna();
+                break;
+            case "show covalent bonds":
+                showlinks();
+                break;
+            case "hide covalent bonds":
+                hidelinks();
                 break;
             default:
                 Debug.Log(eventData.Command.Keyword.ToLower());
@@ -86,6 +118,30 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
         }
     }
 
+    private void comehere()
+    { 
+        Transform cameraTransform = Camera.main.transform;
+        Vector3 cameraPosition = cameraTransform.position;
+        Vector3 cameraForward = cameraTransform.forward;
+        float distanceInFront = 0.2f; 
+        Vector3 newPosition = cameraPosition + cameraForward * distanceInFront;
+        GameObject hitbox = protein.transform.parent.gameObject;
+        hitbox.transform.position = newPosition;
+    }
+
+    private void scalebigger()
+    {
+        GameObject hitbox = protein.transform.parent.gameObject;
+        
+        Vector3 newScale = hitbox.transform.localScale * 2;
+        hitbox.transform.localScale = newScale;
+    }
+    private void scalesmaller()
+    {
+        GameObject hitbox = protein.transform.parent.gameObject;
+        Vector3 newScale = hitbox.transform.localScale / 2;
+        hitbox.transform.localScale = newScale;
+    }
     private void showcolors()
     {
         Transform atoms = protein.transform.Find("Atoms");
@@ -97,232 +153,35 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
             if (renderer != null)
             {
                 // Get the tag of the child GameObject
-                string tag = child.tag;
-                renderer.material.color = ElementColor.AssignColor(tag);
-            }
-        }
-    }
-    private void showcarbon()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "C") {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else {
-                    renderer.material = transmaterial;
-                }
+                string name = child.name;
+                renderer.material.color = ElementColor.AssignColor(name);
             }
         }
     }
 
-    private void showbromine()
+    
+    private void showspecificatom(string name)
     {
         Transform atoms = protein.transform.Find("Atoms");
         atoms.gameObject.SetActive(true);
         foreach (Transform child in atoms.transform)
         {
-            // Check if the child has a Renderer component
             Renderer renderer = child.GetComponent<Renderer>();
             if (renderer != null)
             {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "BR")
+                if (child.name == name)
                 {
                     renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
+                    renderer.material.color = ElementColor.AssignColor(name);
                 }
                 else
                 {
-                    renderer.material = transmaterial;
+                    renderer.material =transmaterial;
                 }
             }
         }
     }
-
-    private void showoxygen()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "O")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
-    private void shownitrogen()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "N")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
-
-    private void showhydrogen()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "H")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
-
-    private void showsulfer()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "S")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
-
-    private void showphosphorous()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "P")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
-
-    private void showzync()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "ZN")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
-
-    private void showchlorine()
-    {
-        Transform atoms = protein.transform.Find("Atoms");
-        atoms.gameObject.SetActive(true);
-        foreach (Transform child in atoms.transform)
-        {
-            // Check if the child has a Renderer component
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                // Get the tag of the child GameObject
-                string tag = child.tag;
-                if (child.tag == "CL")
-                {
-                    renderer.material = defaultMaterial;
-                    renderer.material.color = ElementColor.AssignColor(tag);
-                }
-                else
-                {
-                    renderer.material = transmaterial;
-                }
-            }
-        }
-    }
+    
 
     private void hideAtoms()
     {
@@ -334,6 +193,16 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
         Transform childTransform = protein.transform.Find("Atoms");
         childTransform.gameObject.SetActive(true);
     }
+    private void showlinks()
+    {
+        Transform childTransform = protein.transform.Find("Links");
+        childTransform.gameObject.SetActive(true);
+    }
+    private void hidelinks()
+    {
+        Transform childTransform = protein.transform.Find("Links");
+        childTransform.gameObject.SetActive(false);
+    }
     private void hidehelices()
     {
         Transform childTransform = protein.transform.Find("Helices");
@@ -343,6 +212,19 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
     {
         Transform childTransform = protein.transform.Find("Helices");
         childTransform.gameObject.SetActive(true);
+       
+    }
+
+    private void showrna()
+    {
+        Transform childTransform1 = protein.transform.Find("RNA Helices");
+        childTransform1.gameObject.SetActive(true);
+    }
+
+    private void hiderna()
+    {
+        Transform childTransform1 = protein.transform.Find("RNA Helices");
+        childTransform1.gameObject.SetActive(false);
     }
     private void hidesheets()
     {
@@ -370,10 +252,14 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
         Transform childTransform2 = protein.transform.Find("Helices");
         Transform childTransform3 = protein.transform.Find("Sheets");
         Transform childTransform4 = protein.transform.Find("Connects");
+        Transform childTransform5 = protein.transform.Find("RNA Helixes");
+        Transform childTransform6 = protein.transform.Find("Links");
         childTransform1.gameObject.SetActive(true);
         childTransform2.gameObject.SetActive(true);
         childTransform3.gameObject.SetActive(true);
         childTransform4.gameObject.SetActive(true);
+        childTransform5.gameObject.SetActive(true);
+        childTransform6.gameObject.SetActive(true);
     }
 
     private void hideeverything()
@@ -382,10 +268,14 @@ public class VoiceCommandHandler : MonoBehaviour, IMixedRealitySpeechHandler
         Transform childTransform2 = protein.transform.Find("Helices");
         Transform childTransform3 = protein.transform.Find("Sheets");
         Transform childTransform4 = protein.transform.Find("Connects");
+        Transform childTransform5 = protein.transform.Find("RNA Helixes");
+        Transform childTransform6 = protein.transform.Find("Links");
         childTransform1.gameObject.SetActive(false);
         childTransform2.gameObject.SetActive(false);
         childTransform3.gameObject.SetActive(false);
         childTransform4.gameObject.SetActive(false);
+        childTransform5.gameObject.SetActive(false);
+        childTransform6.gameObject.SetActive(false);
     }
 
     private void OnEnable()

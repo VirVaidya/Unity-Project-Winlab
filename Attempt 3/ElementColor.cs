@@ -7,12 +7,13 @@ public class ElementColor : MonoBehaviour
 {
     static string FilePath = "Assets/Scripts/Attempt 3/Elements.txt";
     static Hashtable colors = new Hashtable();
+    static Hashtable scales = new Hashtable();
 
     public void createmap()
     {
         string currentDirectory = Directory.GetCurrentDirectory();
         string path = Path.Combine(currentDirectory, FilePath);
-        Debug.Log(path);
+        //Debug.Log(path);
         
         string line;
         using(StreamReader reader = new StreamReader(path))
@@ -23,8 +24,10 @@ public class ElementColor : MonoBehaviour
                
                 string hexvalue = line.Split(' ')[1];
                 
+                string scale = line.Split(" ")[2];
 
                 colors.Add(atom, hexvalue);
+                scales.Add(atom, scale);
             }
 
         }
@@ -48,5 +51,17 @@ public class ElementColor : MonoBehaviour
         byte blue = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
 
         return new Color32(red, green, blue, 0xFF);
+    }
+
+    public static void AssignScale(GameObject atom, string abbr)
+    {
+        Vector3 originalscale = atom.transform.localScale;
+        string scale = (string)scales[abbr];
+        originalscale.x *= float.Parse(scale);
+        originalscale.y *= float.Parse(scale);
+        originalscale.z *= float.Parse(scale);
+
+        atom.transform.localScale = originalscale;
+
     }
 }

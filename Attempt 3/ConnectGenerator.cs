@@ -22,7 +22,6 @@ public class ConnectGenerator : MonoBehaviour
         int atom1 = int.Parse(attributes[1]);
         //Debug.Log(attributes.Length);
         while (i < attributes.Length)
-  
         {
             //Debug.Log(i);
             if (!mySet.Contains(attributes[i]))
@@ -32,21 +31,21 @@ public class ConnectGenerator : MonoBehaviour
             }
             i++;
         }
-        
+        mySet.Add(attributes[1]);
     }
 
     void CreateConnect(int atom1, int atom2, AtomGenerator atom)
     {
      
         //Debug.Log(atom.getatominfo()[atom1 - 1][4]);
-        float a1x = float.Parse(atom.getatominfo()[atom1 - 1][4]);
-        float a1y = float.Parse(atom.getatominfo()[atom1 - 1][5]);
-        float a1z = float.Parse(atom.getatominfo()[atom1 - 1][6]);
+        float a1x = float.Parse(atom.getatominfo()[findIndex(atom1, atom)][4]);
+        float a1y = float.Parse(atom.getatominfo()[findIndex(atom1, atom)][5]);
+        float a1z = float.Parse(atom.getatominfo()[findIndex(atom1, atom)][6]);
         Vector3 v1 = new Vector3(a1x, a1y, a1z);
 
-        float a2x = float.Parse(atom.getatominfo()[atom2 - 1][4]);
-        float a2y = float.Parse(atom.getatominfo()[atom2 - 1][5]);
-        float a2z = float.Parse(atom.getatominfo()[atom2 - 1][6]);
+        float a2x = float.Parse(atom.getatominfo()[findIndex(atom2, atom)][4]);
+        float a2y = float.Parse(atom.getatominfo()[findIndex(atom2, atom)][5]);
+        float a2z = float.Parse(atom.getatominfo()[findIndex(atom2, atom)][6]);
         Vector3 v2 = new Vector3(a2x, a2y, a2z);
 
         GameObject connect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -58,5 +57,19 @@ public class ConnectGenerator : MonoBehaviour
         connect.transform.Rotate(90.0f, 0f, 0f, Space.Self);
         ID++;
         
+    }
+
+    int findIndex(int atomNum, AtomGenerator atom)
+    {
+        List<string[]> atoms = atom.getatominfo();
+        for(int i = 0; i < atoms.Count; i++)
+        {
+            if (int.Parse(atoms[i][10]) == atomNum)
+            {
+                return i;
+            }
+        }
+
+        return -1; 
     }
 }

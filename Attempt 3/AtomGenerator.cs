@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using System.Xml.Serialization;
+using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -13,9 +15,11 @@ public class AtomGenerator : MonoBehaviour
     List<string[]> atominfo;
     GameObject atoms = new GameObject();
     Dictionary<string, List<GameObject>> elementAtoms = new Dictionary<string, List<GameObject>>();
+    HashSet<string> atomnames = new HashSet<string>();
+    
+   
 
-
-
+    
 
 
     public AtomGenerator(GameObject protein, CSVWriter list)
@@ -28,10 +32,15 @@ public class AtomGenerator : MonoBehaviour
         
     }
 
+   public void skipTER()
+    {
+        ID++;
+    }
+
     public void GenerateAtom(string line)
     {
         string[] attributes = line.Split(',');
-        atominfo.Add(attributes);
+        //atominfo.Add(attributes);
         //Debug.Log(attributes[2] + ", " + attributes[3] + ", " + attributes[4]);
         float atomX = float.Parse(attributes[4]);
         float atomY = float.Parse(attributes[5]);
@@ -40,55 +49,71 @@ public class AtomGenerator : MonoBehaviour
         Vector3 position = new Vector3(atomX, atomY, atomZ);
         GameObject atom = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         atom.name = "atom-" + ID.ToString();
-        atom.transform.parent = atoms.transform;
-        atom.transform.localPosition = new Vector3(atomX, atomY, atomZ);
-        atom.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+        //atom.transform.parent = atoms.transform;
+        
         AssignColor(atom, attributes[8]);
-
-        if (!elementAtoms.ContainsKey(element))
-        {
-            elementAtoms[element] = new List<GameObject>();
+       
+        if (!atomnames.Contains(element)) {
+           GameObject atomparent = new GameObject(element);
+           atomparent.AddComponent<MeshFilter>();
+           atomparent.AddComponent<MeshRenderer>();
+           AssignColor(atomparent, element); 
+           atomparent.transform.parent = this.atoms.transform;
+           atom.transform.parent = atomparent.transform;
+           atomnames.Add(element);
+        } else {
+           atom.transform.parent = atoms.transform.Find(element);
         }
-        elementAtoms[element].Add(atom);
+
+        
+        
+        atom.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+        ElementColor.AssignScale(atom, attributes[8]);
+        atom.transform.localPosition = new Vector3(atomX, atomY, atomZ);
         ID++;
     }
-    public void CombineMesh()
+
+    public void makemeshes()
     {
-        foreach (var element in elementAtoms.Keys)
-        {
-            List<GameObject> atoms = elementAtoms[element];
-            CombineInstance[] combineInstances = new CombineInstance[atoms.Count];
-
-            for (int i = 0; i < atoms.Count; i++)
-            {
-                MeshFilter meshFilter = atoms[i].GetComponent<MeshFilter>();
-                combineInstances[i].mesh = meshFilter.sharedMesh;
-                combineInstances[i].transform = atoms[i].transform.localToWorldMatrix;
-                atoms[i].SetActive(false);
-            }
-
-            GameObject combinedObject = new GameObject(element + "Atoms");
-            combinedObject.transform.parent = transform;
-            combinedObject.transform.localPosition = Vector3.zero;
-
-            Mesh combinedMesh = new Mesh();
-            combinedMesh.CombineMeshes(combineInstances);
-
-            MeshFilter combinedMeshFilter = combinedObject.AddComponent<MeshFilter>();
-            combinedMeshFilter.mesh = combinedMesh;
-
-            MeshRenderer combinedMeshRenderer = combinedObject.AddComponent<MeshRenderer>();
-            combinedMeshRenderer.material = atoms[0].GetComponent<Renderer>().material;
-
-            combinedObject.SetActive(true);
+        int childCount = atoms.transform.childCount;
+        for (int i = 0; i < childCount; i++) { 
+           Transform child = atoms.transform.GetChild(i);
+           CombineAllMeshes(child.gameObject); 
         }
     }
-    Mesh CreateSphereMesh()
+    public void CombineAllMeshes(GameObject atomparent)
     {
-        GameObject tempSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        Mesh sphereMesh = tempSphere.GetComponent<MeshFilter>().mesh;
-        Destroy(tempSphere);
-        return sphereMesh;
+        MeshFilter[] meshfilter = atomparent.GetComponentsInChildren<MeshFilter>();
+        CombineInstance[] combine = new CombineInstance[meshfilter.Length];
+        Matrix4x4 parentTransform = atomparent.transform.localToWorldMatrix;
+        Matrix4x4 parentInverse = parentTransform.inverse;
+        int i = 0;
+        Vector3 originalPosition = atomparent.transform.localPosition;
+        Vector3 originalScale = atomparent.transform.localScale;
+
+
+        while (i < meshfilter.Length)
+        {
+            combine[i].mesh = meshfilter[i].sharedMesh;
+            //combine[i].transform = meshfilter[i].transform.localToWorldMatrix;
+            combine[i].transform = parentInverse * meshfilter[i].transform.localToWorldMatrix;
+            meshfilter[i].gameObject.SetActive(false);
+
+          
+            i++;
+        }
+        MeshFilter mf = atomparent.GetComponent<MeshFilter>();
+        mf.mesh = new Mesh();
+        mf.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        mf.mesh.CombineMeshes(combine);
+
+      
+        Renderer mr = atomparent.GetComponent<Renderer>();
+        mr.material.color = meshfilter[0].gameObject.GetComponent<Renderer>().material.color;
+        
+        atomparent.transform.localPosition = originalPosition;
+    atomparent.transform.localScale = originalScale;
+        atomparent.SetActive(true);
     }
 
     public List<string[]> getatominfo()
@@ -99,7 +124,7 @@ public class AtomGenerator : MonoBehaviour
     public void displayatominfo(int index)
     {
         string temp = "";
-        for (int i = 0; i < atominfo.Count; i++)
+        for (int i = 0; i < atominfo[index].Length; i++)
         {
             temp += atominfo[index][i] + " ";
         }
@@ -111,6 +136,7 @@ public class AtomGenerator : MonoBehaviour
     {
         Renderer renderer = atom.GetComponent<Renderer>();
         renderer.material.color = ElementColor.AssignColor(element);
-        atom.tag = element;
+   
+        //atom.tag = element;
     }
 }
